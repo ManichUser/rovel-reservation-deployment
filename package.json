@@ -3,25 +3,37 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "NODE_OPTIONS='--inspect' next dev"
   },
   "dependencies": {
-    "react": "^19.0.0",
+    "@heroicons/react": "^2.2.0",
+    "@neondatabase/serverless": "^1.0.1",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^6.0.0",
+    "bwip-js": "^4.6.0",
+    "next": "^15.3.4",
+    "next-auth": "^5.0.0-beta.29",
+    "nodemailer": "^6.10.1",
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.17.1",
+    "postgres": "^3.4.7",
+    "react": "^19.1.0",
     "react-dom": "^19.0.0",
-    "next": "15.3.4"
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/bwip-js": "^3.2.3",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pdfkit": "^0.14.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
