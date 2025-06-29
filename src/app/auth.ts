@@ -1,4 +1,5 @@
 import Credentials from 'next-auth/providers/credentials';
+
 import NextAuth from "next-auth";
 import { ZodError } from "zod";
 import { signInSchema } from "./lib/zod";
@@ -24,6 +25,7 @@ async function getUser(email: string): Promise<User | undefined> {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     Credentials({
       credentials: {
