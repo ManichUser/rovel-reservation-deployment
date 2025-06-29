@@ -25,6 +25,20 @@ const ticketSchema = z.object({
   from: z.string(),
   to: z.string(),
 });
+function serializeTicketForQR(ticket: Ticket): string {
+  return JSON.stringify({
+    name: ticket.name,
+    agency: ticket.agency,
+    mode: ticket.mode,
+    date: ticket.date,
+    departureTime: ticket.departureTime,
+    from: ticket.from,
+    to: ticket.to,
+    class: ticket.class,
+    totalAmount: ticket.totalAmount,
+  });
+}
+
 
 async function getUserIdByEmail(email: string): Promise<string | undefined> {
   const user = await sql<User[]>`SELECT id FROM users WHERE email = ${email}`;
@@ -43,9 +57,10 @@ export async function generateBarcodeBase64(content: string): Promise<string> {
   return buffer.toString('base64');
 }
 
-export async function generateQRCodeBase64(data: string): Promise<string> {
+export async function generateQRCodeBase64(ticket: Ticket): Promise<string> {
   try {
-    const base64 = await QRCode.toDataURL(data+"hii", {
+    const payload = serializeTicketForQR(ticket); // JSON.stringify({...})
+    const base64 = await QRCode.toDataURL(payload, {
       errorCorrectionLevel: 'H',
       type: 'image/png',
       scale: 8,
@@ -59,6 +74,7 @@ export async function generateQRCodeBase64(data: string): Promise<string> {
     throw error;
   }
 }
+
 
 export async function generateTicketPDF(
   ticket: Ticket,
@@ -175,7 +191,7 @@ export async function POST(req: Request) {
   
     
     const barcode = await generateBarcodeBase64(ticket.name + Date.now());
-    const qrCode = await generateQRCodeBase64(ticket.id);
+    const qrCode = await generateQRCodeBase64(ticket);
     const pdfBuffer = await generateTicketPDF(ticket, barcode, qrCode); // si tu ajoutes le QR code
     await sendTicketEmail(ticket, barcode, pdfBuffer);
     

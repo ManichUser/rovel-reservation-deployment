@@ -1,6 +1,4 @@
-// lib/mappers.ts ou utils/ticketMapper.ts
-// import { Ticket, TicketDB } from '../data/tickets'; 
-import { Ticket,TicketDBRaw } from "../data/ tickets";
+import { Ticket, TicketDBRaw } from '@/app/data/ tickets';
 
 export function mapTicketDbToTicket(ticketDb: TicketDBRaw): Ticket {
   return {
@@ -10,13 +8,15 @@ export function mapTicketDbToTicket(ticketDb: TicketDBRaw): Ticket {
     name: ticketDb.name,
     email: ticketDb.email,
     date: ticketDb.date,
-    departureTime: ticketDb.departure_time,
-    totalAmount: ticketDb.total_amount,
+    departureTime: ticketDb.departure_time ?? '',
+    totalAmount: typeof ticketDb.total_amount === 'number'
+      ? ticketDb.total_amount
+      : parseFloat(ticketDb.total_amount || '0'),
     class: ticketDb.class,
-    from: ticketDb.from_location,
-    to: ticketDb.to_location,
-    userId: ticketDb.user_id,
-    barcodeUrl: '/images/barcode-sample.png', // valeur par défaut ou à générer
-    thumbnailUrl: '/images/bus-thumbnail.jpeg', // idem
+    from: ticketDb.from_location ?? '',
+    to: ticketDb.to_location ?? '',
+    userId: ticketDb.user_id ?? '',
+    barcodeUrl: `/images/barcode-${ticketDb.id}.png`, // ou à générer dynamiquement
+    thumbnailUrl: `/images/bus-thumbnail.jpeg`, // idem
   };
 }

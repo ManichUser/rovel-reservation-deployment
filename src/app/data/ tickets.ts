@@ -19,6 +19,7 @@ export interface TicketDB {
 // types.ts ou data/tickets.ts
 
 export interface TicketDBRaw {
+  from: string;
   id: string;
   agency: string;
   mode: 'BUS' | 'TRAIN' | 'AVION';
@@ -40,6 +41,4 @@ export interface Ticket extends TicketDB {
 }
 
 
-// Fonction utilitaire pour générer un ID simple
-const generateId = () => Math.random().toString(36).substr(2, 9);
 

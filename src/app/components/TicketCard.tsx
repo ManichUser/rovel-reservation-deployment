@@ -9,7 +9,7 @@ interface TicketCardProps {
 
 export const TicketCard = async ({ ticket }: TicketCardProps) => {
   const barcode = await generateBarcodeBase64(ticket.name + Date.now());
-  const qrCode = await generateQRCodeBase64(ticket.id);
+  const qrCode = await generateQRCodeBase64(ticket);
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden my-4 mx-auto  w-[70vw] border border-gray-200">
       <div className="flex flex-col md:flex-row">

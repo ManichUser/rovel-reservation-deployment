@@ -93,7 +93,7 @@ export default function HomePage() {
             <>
               <UserCard
                 title="Mes tickets"
-                description="Consultez vos tickets réservés et recevez-les par WhatsApp."
+                description="Consultez vos tickets enregistrés."
                 href="/dashboard"
               />
             </>
