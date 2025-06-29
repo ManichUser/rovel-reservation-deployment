@@ -42,7 +42,7 @@ export default function HomePage() {
         <h1 className="text-4xl font-bold text-blue-800 mb-4">Bienvenue sur Rovel-TicketExpress</h1>
         <p className="text-lg text-gray-700 mb-8">
           {isAdmin ? (
-            <>Vous êtes connecté en tant qu'<span className="font-semibold">Administrateur</span>.</>
+            <>Vous êtes connecté en tant que <span className="font-semibold">Administrateur</span>.</>
           ) : (
             <>Bonjour <span className="font-semibold">{username || "invité(e)"}</span>, voici votre espace de réservation de billets.</>
           )}
@@ -61,7 +61,6 @@ export default function HomePage() {
                 </thead>
                 <tbody>
                   {reservations.map((res, i) => {
-                    const taux = Math.round((res.ticketsIssued / res.totalReservations) * 100);
                     return (
                       <tr key={i} className="border-b hover:bg-gray-100 flex justify-between">
                         <td className="px-6 py-4 font-medium">{res.agent}</td>

@@ -116,7 +116,9 @@ export const TicketPDF = ({ ticket, barcodeBuffer, qrCodeBuffer }: TicketPDFProp
       {/* Colonne Droite */}
       <View style={styles.rightColumn}>
         <Text style={styles.rightTitle}>CLASS: {ticket.class}</Text>
-        <Image style={styles.barcode} src={`data:image/png;base64,${barcodeBuffer}`} />
+        <Image style={styles.barcode}
+        
+        src={`data:image/png;base64,${barcodeBuffer}`} />
 
         <Text style={styles.label}>Mode:</Text>
         <Text style={styles.value}>{ticket.mode}</Text>

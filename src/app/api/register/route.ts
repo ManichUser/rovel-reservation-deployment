@@ -6,7 +6,7 @@ import { hashPassword } from '../../../app/lib/server/hash';
 import postgres from 'postgres'; 
 import type { User } from '../../../app/lib/definitions'; 
 
-
+export const runtime = 'nodejs';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
 // Schéma de validation pour l'enregistrement d'un utilisateur
@@ -46,11 +46,11 @@ export async function POST(request: Request) {
 
     // Vérifier si l'insertion a réussi et retourner l'utilisateur créé (sans le mot de passe haché)
     if (newUser.length > 0) {
-      const { password: _, ...userWithoutPassword } = newUser[0]; // Retirer le mot de passe de l'objet retourné
+      const { password: pass, ...userWithoutPassword } = newUser[0]; 
       console.log('Nouvel utilisateur enregistré avec succès dans Neon:', userWithoutPassword);
-      return NextResponse.json({ message: 'Utilisateur enregistré avec succès', user: userWithoutPassword }, { status: 201 });
+      return NextResponse.json({ message: 'Utilisateur enregistré avec succès', user: userWithoutPassword,pass }, { status: 201 });
     } else {
-      throw new Error('Échec de l\'insertion de l\'utilisateur dans la base de données.');
+      throw new Error('Échec de l\'insertion de l\'utilisateur dans la base de données.',);
     }
 
   } catch (error) {

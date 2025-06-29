@@ -10,7 +10,7 @@ import { User } from '@/app/lib/definitions';
 import QRCode from 'qrcode'
 import { Ticket, TicketDBRaw } from '@/app/data/ tickets';
 
-
+export const runtime = 'nodejs';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
 const ticketSchema = z.object({

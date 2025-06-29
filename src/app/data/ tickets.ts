@@ -1,7 +1,5 @@
 // src/app/data/tickets.ts
 
-import { ReactNode } from "react";
-
 export interface TicketDB {
   id: string;
   agency: string;

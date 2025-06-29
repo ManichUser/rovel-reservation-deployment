@@ -4,6 +4,8 @@ import { ZodError } from "zod";
 import { signInSchema } from "./lib/zod";
 import type { User } from '@/app/lib/definitions';
 import postgres from 'postgres';
+export const runtime = 'nodejs';
+
 // Vous avez besoin de bcrypt pour comparer le mot de passe.
 import bcrypt from 'bcryptjs'; // Assurez-vous d'avoir 'bcrypt' installé (`npm install bcrypt`)
 
@@ -28,7 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: {},
         password: {},
       },
-      authorize: async (credentials, request) => {
+      authorize: async (credentials) => {
         try {
           // 1. Valider les identifiants avec Zod
           const { email, password } = await signInSchema.parseAsync(credentials);
@@ -52,7 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           // 6. Si l'authentification réussit, préparer l'objet User avec id de type string pour NextAuth
-          let newUserWithIdString={...user, id: user.id.toString()}; 
+          const newUserWithIdString={...user, id: user.id.toString()}; 
           return newUserWithIdString; // Retourner l'objet utilisateur authentifié
 
         } catch (error) {
