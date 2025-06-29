@@ -139,13 +139,19 @@ export async function POST(req: Request) {
 
     const data = parsed.data;
 
-    const inserted = await sql<TicketDBRaw[]>`
+    const inserted = await sql<Ticket[]>`
     INSERT INTO tickets (agency, mode, name, email, date, departure_time, total_amount, class, from_location, to_location, user_id)
     VALUES (${data.agency}, ${data.mode}, ${data.name}, ${data.email}, ${data.date},
-            ${data.departureTime}, ${data.totalAmount}, ${data.class}, ${data.from}, ${data.to}, ${userId})
-    RETURNING id, agency, mode, name, email, date, departure_time AS "departureTime",
-              total_amount AS "totalAmount", class, from_location AS "from", to_location AS "to", user_id AS "userId";
+      ${data.departureTime}, ${data.totalAmount}, ${data.class}, ${data.from}, ${data.to}, ${userId})
+    RETURNING id, agency, mode, name, email, date,
+              departure_time AS "departureTime",
+              total_amount AS "totalAmount", 
+              class, 
+              from_location AS "from", 
+              to_location AS "to", 
+              user_id AS "userId";
   `;
+  
 
   const dbTicket = inserted[0];
   
@@ -156,12 +162,12 @@ export async function POST(req: Request) {
     name: dbTicket.name,
     email: dbTicket.email,
     date: dbTicket.date,
-    departureTime: dbTicket.departure_time,
-    totalAmount: dbTicket.total_amount,
+    departureTime: dbTicket.departureTime,
+    totalAmount: dbTicket.totalAmount,
     class: dbTicket.class,
-    from: dbTicket.from_location,
-    to: dbTicket.to_location,
-    userId: dbTicket.user_id,
+    from: dbTicket.from,
+    to: dbTicket.to,
+    userId: dbTicket.userId,
     barcodeUrl: `/images/barcode-${dbTicket.id}.png`,
     thumbnailUrl: `/images/bus-thumbnail.jpeg`
   };
