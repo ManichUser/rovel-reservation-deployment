@@ -48,6 +48,7 @@ export async function POST(request: Request) {
     if (newUser.length > 0) {
       const { password, ...userWithoutPassword } = newUser[0]; 
       console.log('Nouvel utilisateur enregistré avec succès dans Neon:', userWithoutPassword);
+      console.log(password)
       return NextResponse.json({ message: 'Utilisateur enregistré avec succès', user: userWithoutPassword }, { status: 201 });
     } else {
       throw new Error('Échec de l\'insertion de l\'utilisateur dans la base de données.',);
