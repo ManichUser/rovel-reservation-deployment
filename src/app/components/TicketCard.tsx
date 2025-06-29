@@ -1,12 +1,15 @@
-// src/app/components/TicketCard.tsx
+
 import Image from 'next/image';
 import { Ticket } from '../data/ tickets';
+import { generateBarcodeBase64, generateQRCodeBase64 } from '../api/tickets/route';
 
 interface TicketCardProps {
   ticket: Ticket;
 }
 
-export const TicketCard = ({ ticket }: TicketCardProps) => {
+export const TicketCard = async ({ ticket }: TicketCardProps) => {
+  const barcode = await generateBarcodeBase64(ticket.name + Date.now());
+  const qrCode = await generateQRCodeBase64(ticket.id);
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden my-4 mx-auto  w-[70vw] border border-gray-200">
       <div className="flex flex-col md:flex-row">
@@ -52,7 +55,7 @@ export const TicketCard = ({ ticket }: TicketCardProps) => {
               <p className="text-sm">From:</p>
               <p className="text-2xl font-bold">{ticket.from}</p>
               <Image
-                src={ticket.thumbnailUrl}
+                src={`data:image/png;base64,${qrCode}`}
                 alt="Thumbnail"
                 width={80}
                 height={80}
@@ -66,7 +69,7 @@ export const TicketCard = ({ ticket }: TicketCardProps) => {
           {ticket.barcodeUrl && (
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
               <Image
-                src={ticket.barcodeUrl}
+                src={`data:image/png;base64,${barcode}`}
                 alt="Barcode"
                 width={40}
                 height={200}
@@ -83,10 +86,10 @@ export const TicketCard = ({ ticket }: TicketCardProps) => {
             <h3 className="text-2xl font-bold text-blue-800 mb-4">CLASS: {ticket.class}</h3>
             <div className="mb-4">
               <Image
-                src={ticket.barcodeUrl}
+              src={`data:image/png;base64,${barcode}`}
                 alt="Barcode Small"
                 width={100}
-                height={50}
+                height={80}
                 className="mx-auto mb-2"
               />
               <p className="text-xs text-gray-600">Mode: {ticket.mode}</p>
@@ -113,7 +116,7 @@ export const TicketCard = ({ ticket }: TicketCardProps) => {
             <p className="text-xs text-gray-500">From:</p>
             <p className="text-lg font-bold text-gray-800">{ticket.from}</p>
             <Image
-                src={ticket.thumbnailUrl}
+                src={`data:image/png;base64,${qrCode}`}
                 alt="Thumbnail Small"
                 width={60}
                 height={60}

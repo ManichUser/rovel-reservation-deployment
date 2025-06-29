@@ -61,10 +61,10 @@ export default function AddUserPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 className="text-3xl font-bold text-green-800 text-center mb-6">Ajouter un Nouvel Utilisateur</h1>
+        <h1 className="text-3xl font-bold text-blue-800 text-center mb-6">Ajouter un Nouvel Utilisateur</h1>
 
         {message && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <div className="bg-green-100 border border-bleue-400 text-blue-700 px-4 py-3 rounded relative mb-4" role="alert">
             <span className="block sm:inline">{message}</span>
           </div>
         )}
@@ -74,7 +74,7 @@ export default function AddUserPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 text-black">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nom:</label>
             <input
@@ -83,7 +83,7 @@ export default function AddUserPage() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
               required
             />
           </div>
@@ -107,13 +107,13 @@ export default function AddUserPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-green-700 text-white p-3 rounded-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
+            className="w-full bg-blue-700 text-white p-3 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
             disabled={loading}
           >
             {loading ? 'Ajout en cours...' : 'Ajouter Utilisateur'}

@@ -12,7 +12,7 @@ export const TicketForm = () => {
     date: '',
     departureTime: '',
     totalAmount: 0, 
-    class: 'Standard', // CORRECTION 1: Changé de 'classique' à 'Standard' pour correspondre aux options du select
+    class: 'Classique', // CORRECTION 1: Changé de 'classique' à 'Classique' pour correspondre aux options du select
     from: '',
     to: '',
   });
@@ -65,7 +65,7 @@ export const TicketForm = () => {
           date: '',
           departureTime: '',
           totalAmount: 0, // Réinitialiser à 0,
-          class: 'Standard', // Réinitialiser à la valeur par défaut correcte
+          class: 'Classique', // Réinitialiser à la valeur par défaut correcte
           from: '',
           to: '',
         });
@@ -108,7 +108,7 @@ export const TicketForm = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 text-black md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="agency" className="block text-sm font-medium text-gray-700">Agence:</label>
           <input
@@ -206,9 +206,8 @@ export const TicketForm = () => {
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
             required
           >
-            <option value="Standard">Standard</option>
+            <option value="Classique">Classique</option>
             <option value="VIP">VIP</option>
-            <option value="Premiere">Première</option>
           </select>
         </div>
         <div>
