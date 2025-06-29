@@ -46,9 +46,9 @@ export async function POST(request: Request) {
 
     // Vérifier si l'insertion a réussi et retourner l'utilisateur créé (sans le mot de passe haché)
     if (newUser.length > 0) {
-      const { password: pass, ...userWithoutPassword } = newUser[0]; 
+      const { password, ...userWithoutPassword } = newUser[0]; 
       console.log('Nouvel utilisateur enregistré avec succès dans Neon:', userWithoutPassword);
-      return NextResponse.json({ message: 'Utilisateur enregistré avec succès', user: userWithoutPassword,pass }, { status: 201 });
+      return NextResponse.json({ message: 'Utilisateur enregistré avec succès', user: userWithoutPassword }, { status: 201 });
     } else {
       throw new Error('Échec de l\'insertion de l\'utilisateur dans la base de données.',);
     }
