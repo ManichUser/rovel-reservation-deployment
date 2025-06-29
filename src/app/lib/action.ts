@@ -1,26 +1,33 @@
 'use server';
- 
 
-import { signIn } from '../auth';
-import { AuthError } from 'next-auth';
- 
-// ...
- 
-export async function authenticate(
-  prevState: string | undefined,
-  formData: FormData,
-) {
-  try {
-    await signIn('credentials', formData);
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return 'Invalid credentials.';
-        default:
-          return 'Something went wrong.';
-      }
-    }
-    throw error;
+import { signIn } from 'next-auth/react';
+
+export async function authenticate(prevState: any, formData: FormData) {
+  const email = formData.get('email')?.toString();
+  const password = formData.get('password')?.toString();
+  const redirectTo = formData.get('redirectTo')?.toString() || '/';
+
+  if (!email || !password) {
+    return 'Email et mot de passe requis';
   }
+
+  const result = await signIn('credentials', {
+    email,
+    password,
+    redirect: false,
+    callbackUrl: redirectTo,
+  });
+
+  if (result?.error) {
+    return 'Échec de la connexion : identifiants invalides';
+  }
+
+  //  Le navigateur va automatiquement rediriger si success côté client
+  if (result?.ok) {
+    if (typeof window !== 'undefined') {
+      window.location.href = result.url || redirectTo;
+    }
+  }
+
+  return undefined;
 }

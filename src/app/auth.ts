@@ -31,6 +31,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: {},
       },
       authorize: async (credentials) => {
+        console.log('🔍 Credentials received:', credentials);
+        if (!credentials?.email || !credentials?.password) {
+          console.warn('❌ Credentials manquants');
+          return null;
+        }
         try {
           // 1. Valider les identifiants avec Zod
           const { email, password } = await signInSchema.parseAsync(credentials);
