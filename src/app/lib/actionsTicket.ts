@@ -6,6 +6,7 @@ import postgres from 'postgres'; // Importez votre client postgres
 import { z } from 'zod'; // Pour la validation des données
 import { auth } from '@/app/auth'; // Pour vérifier la session utilisateur
 import { User } from '@/app/lib/definitions'; // Pour le type User
+import { TicketDBRaw } from '../data/ tickets';
 // import { Ticket } from '../data/ tickets';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
@@ -179,5 +180,26 @@ export async function deleteTicket(id: string) {
   } catch (error) {
     console.error('Erreur lors de la suppression du ticket:', error);
     return { success: false, error: 'Échec de la suppression du ticket en base de données.' };
+  }
+}
+
+/**
+ * Récupère un seul ticket par son ID et l'ID de l'utilisateur.
+ * Ceci garantit que l'utilisateur ne peut voir que ses propres tickets.
+ * @param ticketId L'ID unique du ticket.
+ * @param userId L'ID de l'utilisateur propriétaire du ticket.
+ * @returns Le ticket brut de la base de données ou undefined si non trouvé.
+ */
+export async  function getTicketByIdAndUser(ticketId: string, userId: string): Promise<TicketDBRaw | undefined> {
+  try {
+    const ticketData = await sql<TicketDBRaw[]>`
+      SELECT * FROM tickets
+      WHERE id = ${ticketId} AND user_id = ${userId};
+    `;
+    return ticketData.length > 0 ? ticketData[0] : undefined;
+  } catch (error) {
+    console.error(`Erreur lors de la récupération du ticket ${ticketId} pour l'utilisateur ${userId}:`, error);
+    // Propager l'erreur pour qu'elle soit gérée par le composant appelant
+    throw new Error("Erreur de base de données lors de la récupération du ticket.");
   }
 }

@@ -107,6 +107,7 @@ export const TicketPDF = ({ ticket, barcodeBuffer, qrCodeBuffer }: TicketPDFProp
         <View style={styles.locationBox}>
           <Text>From:</Text>
           <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{ticket.from}</Text>
+          {/* eslint-disable-next-line jsx-a11y/alt-text */}
           <Image style={styles.qrcode} src={`data:image/png;base64,${qrCodeBuffer}`} />
           <Text>To:</Text>
           <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{ticket.to}</Text>
@@ -116,8 +117,8 @@ export const TicketPDF = ({ ticket, barcodeBuffer, qrCodeBuffer }: TicketPDFProp
       {/* Colonne Droite */}
       <View style={styles.rightColumn}>
         <Text style={styles.rightTitle}>CLASS: {ticket.class}</Text>
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
         <Image style={styles.barcode}
-        
         src={`data:image/png;base64,${barcodeBuffer}`} />
 
         <Text style={styles.label}>Mode:</Text>
@@ -143,7 +144,7 @@ export const TicketPDF = ({ ticket, barcodeBuffer, qrCodeBuffer }: TicketPDFProp
 
         <Text style={styles.label}>From:</Text>
         <Text style={styles.value}>{ticket.from}</Text>
-
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
         <Image style={styles.qrcode} src={`data:image/png;base64,${qrCodeBuffer}`} />
 
         <Text style={styles.label}>To:</Text>

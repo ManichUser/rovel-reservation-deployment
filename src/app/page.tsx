@@ -4,10 +4,8 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { TicketDBRaw } from '@/app/data/ tickets'; // Correction de l'espace dans le chemin
+import { TicketDBRaw } from '@/app/data/ tickets';
 
-// Définir l'interface pour les statistiques de réservation réelles
-// Elle doit correspondre à ce que votre API /api/reservation-stats retourne
 interface ReservationStat {
   nomAgent: string;
   nomClient: string;
@@ -24,59 +22,62 @@ type CardProps = {
 export default function HomePage() {
   const { data: session, status } = useSession();
   const username = session?.user?.name;
-  const isAdmin = username === "Ronel Mbami"; // Vérification de l'administrateur
+  const isAdmin = username === "Ronel Mbami";
 
-  // Utilisez ReservationStat pour le type de l'état des réservations
   const [reservations, setReservations] = useState<ReservationStat[]>([]);
-  const [loadingReservations, setLoadingReservations] = useState(false); // Nouveau état de chargement pour les stats admin
-  const [reservationsError, setReservationsError] = useState<string | null>(null); // Nouvel état d'erreur pour les stats admin
+  const [loadingReservations, setLoadingReservations] = useState(false);
+  const [reservationsError, setReservationsError] = useState<string | null>(null);
 
-  // État existant pour les tickets de l'utilisateur normal
   const [userTickets, setUserTickets] = useState<TicketDBRaw[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(true);
   const [ticketsError, setTicketsError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Logique de récupération des statistiques pour l'administrateur
     if (isAdmin) {
       const fetchReservationStats = async () => {
         setLoadingReservations(true);
         setReservationsError(null);
         try {
-          const response = await fetch('/api/reservation-stats'); // Appel à la nouvelle route API
-
+          const response = await fetch('/api/reservation-stats');
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Échec de la récupération des statistiques de réservation.');
           }
           const data = await response.json();
-          setReservations(data.stats || []); // Met à jour l'état avec les données réelles
-        } catch (error: any) {
-          console.error('Erreur lors de la récupération des statistiques de réservation:', error);
-          setReservationsError(error.message || 'Impossible de charger les statistiques de réservation.');
+          setReservations(data.stats || []);
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            console.error('Erreur lors de la récupération des statistiques de réservation:', error);
+            setReservationsError(error.message || 'Impossible de charger les statistiques de réservation.');
+          } else {
+            console.error('Erreur inconnue:', error);
+            setReservationsError('Erreur inconnue lors de la récupération des statistiques.');
+          }
         } finally {
           setLoadingReservations(false);
         }
       };
       fetchReservationStats();
-    }
-    // Logique existante pour la récupération des tickets de l'utilisateur normal
-    else if (status === "authenticated" && session?.user?.email) {
+    } else if (status === "authenticated" && session?.user?.email) {
       const fetchUserTickets = async () => {
         setLoadingTickets(true);
         setTicketsError(null);
         try {
           const response = await fetch('/api/tickets');
-
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Échec de la récupération des tickets');
           }
           const data = await response.json();
           setUserTickets(data.tickets || []);
-        } catch (error: any) {
-          console.error('Erreur lors de la récupération des tickets de l\'utilisateur:', error);
-          setTicketsError(error.message || 'Impossible de charger vos tickets.');
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            console.error('Erreur lors de la récupération des tickets de l\'utilisateur:', error);
+            setTicketsError(error.message || 'Impossible de charger vos tickets.');
+          } else {
+            console.error('Erreur inconnue:', error);
+            setTicketsError('Erreur inconnue lors de la récupération des tickets.');
+          }
         } finally {
           setLoadingTickets(false);
         }
@@ -85,7 +86,7 @@ export default function HomePage() {
     } else if (status === "unauthenticated") {
       setLoadingTickets(false);
     }
-  }, [isAdmin, status, session]); // Dépendances du useEffect
+  }, [isAdmin, status, session]);
 
   if (status === "loading") return <p className="text-center py-44">Chargement...</p>;
 
@@ -97,17 +98,19 @@ export default function HomePage() {
           {isAdmin ? (
             <>Vous êtes connecté en tant que <span className="font-semibold">Administrateur</span>.</>
           ) : (
-            <>Bonjour <span className="font-semibold">{username || "invité(e)"}</span>, voici votre espace de réservation de billets. 
-          {!username?( <Link color="bleue" href='/login'>
-            Veuillez vous <span className="text-red-600">connectez</span> pour travailler
-            </Link>):" " }
+            <>
+              Bonjour <span className="font-semibold">{username || "invité(e)"}</span>, voici votre espace de réservation de billets.
+              {!username ? (
+                <Link color="bleue" href='/login'>
+                  Veuillez vous <span className="text-red-600">connecter</span> pour travailler
+                </Link>
+              ) : " "}
             </>
           )}
         </p>
 
         {isAdmin && (
           <>
-            {/* Le titre peut rester "Statistiques de Réservation" mais le contenu sera plus détaillé */}
             <h2 className="text-2xl font-semibold text-black text-left mb-4">Détails des Réservations</h2>
             <div className="overflow-x-auto bg-white rounded-xl shadow-lg mb-8">
               {loadingReservations ? (
@@ -130,7 +133,7 @@ export default function HomePage() {
                         <td className="px-6 py-4 font-medium">{res.nomAgent}</td>
                         <td className="px-6 py-4">{res.nomClient}</td>
                         <td className="px-6 py-4">{res.agency}</td>
-                        <td className="px-6 py-4">{res.ticketsIssued}</td> {/* Sera toujours 1 ici */}
+                        <td className="px-6 py-4">{res.ticketsIssued}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -153,12 +156,11 @@ export default function HomePage() {
               <AdminCard
                 title="Toutes les Réservations"
                 description="Consulter toutes les réservations enregistrées."
-                href="/dashboard" // Ou un autre chemin si vous avez une page dédiée pour toutes les réservations
+                href="/dashboard"
               />
             </>
           ) : (
             <>
-              {/* Affichage des tickets de l'utilisateur */}
               <div className="md:col-span-2 mt-8">
                 <h2 className="text-2xl font-semibold text-black text-left mb-4">Vos Tickets Enregistres</h2>
                 {loadingTickets ? (
@@ -181,7 +183,9 @@ export default function HomePage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-600">Vous n'avez pas encore de tickets réservés. <Link href="/dashboard" className="text-blue-600 hover:underline">Réservez-en un maintenant !</Link></p>
+                  <p className="text-gray-600">
+                    Vous n&apos;avez pas encore de tickets réservés. <Link href="/dashboard" className="text-blue-600 hover:underline">Réservez-en un maintenant !</Link>
+                  </p>
                 )}
               </div>
             </>
@@ -203,4 +207,3 @@ function AdminCard({ title, description, href }: CardProps) {
     </Link>
   );
 }
-

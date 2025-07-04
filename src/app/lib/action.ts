@@ -8,7 +8,8 @@ import { NextResponse } from 'next/server';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
-export async function authenticate(_prevState: unknown, formData: FormData) {
+export async function authenticate(prevState: unknown, formData: FormData) {
+  console.log(prevState)
   const email = formData.get('email')?.toString();
   const password = formData.get('password')?.toString();
   const redirectTo = formData.get('redirectTo')?.toString() || '/';
@@ -37,9 +38,8 @@ export async function authenticate(_prevState: unknown, formData: FormData) {
   return undefined;
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    console.log(req)
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Authentification requise.' }, { status: 401 });
@@ -91,7 +91,7 @@ export async function getUserById(id: number) {
 export async function updateUser(id: number, data: { name?: string; email?: string; password?: string }) {
   try {
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: (string | number)[] = [];
 
     if (data.name !== undefined) {
       fields.push(`name = $${fields.length + 1}`);

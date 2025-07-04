@@ -1,4 +1,4 @@
-// src/app/api/tickets/route.tsx
+// src/app/api/tickets/route.ts
 
 import { NextResponse } from 'next/server';
 import postgres from 'postgres';
@@ -6,11 +6,11 @@ import { z } from 'zod';
 import { renderToBuffer } from '@react-pdf/renderer';
 import bwipjs from 'bwip-js';
 import nodemailer from 'nodemailer';
-import {TicketPDF} from '../../lib/pdf/TicketDocument';
+import { TicketPDF } from '../../lib/pdf/TicketDocument';
 import { auth } from '@/app/auth';
 import { User } from '@/app/lib/definitions';
-import QRCode from 'qrcode'
-import { Ticket, TicketDBRaw } from '@/app/data/ tickets'; // Correction de l'espace dans le chemin
+import QRCode from 'qrcode';
+import { Ticket, TicketDBRaw } from '@/app/data/ tickets';
 
 export const runtime = 'nodejs';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
@@ -60,30 +60,20 @@ export async function generateBarcodeBase64(content: string): Promise<string> {
 }
 
 export async function generateQRCodeBase64(ticket: Ticket): Promise<string> {
-  try {
-    const payload = serializeTicketForQR(ticket);
-    const base64 = await QRCode.toDataURL(payload, {
-      errorCorrectionLevel: 'H',
-      type: 'image/png',
-      scale: 8,
-      margin: 2,
-    });
-    return base64.split(',')[1];
-  } catch (error) {
-    console.error('Erreur lors de la génération du QR code:', error);
-    throw error;
-  }
+  const payload = serializeTicketForQR(ticket);
+  const base64 = await QRCode.toDataURL(payload, {
+    errorCorrectionLevel: 'H',
+    type: 'image/png',
+    scale: 8,
+    margin: 2,
+  });
+  return base64.split(',')[1];
 }
 
-export async function generateTicketPDF(
-  ticket: Ticket,
-  barcodeBase64: string,
-  qrCodeBase64: string
-): Promise<Buffer> {
-  const pdfBuffer = await renderToBuffer(
+async function generateTicketPDF(ticket: Ticket, barcodeBase64: string, qrCodeBase64: string): Promise<Buffer> {
+  return await renderToBuffer(
     <TicketPDF ticket={ticket} barcodeBuffer={barcodeBase64} qrCodeBuffer={qrCodeBase64} />
   );
-  return pdfBuffer;
 }
 
 async function sendTicketEmail(ticket: Ticket, barcodeBase64: string, pdfBuffer: Buffer) {
@@ -94,13 +84,14 @@ async function sendTicketEmail(ticket: Ticket, barcodeBase64: string, pdfBuffer:
       pass: process.env.EMAIL_PASSWORD,
     },
   });
+
   const barcodeBuffer = Buffer.from(barcodeBase64, 'base64');
   await transporter.sendMail({
     from: `"Rovel Reservation" <${process.env.EMAIL_FROM}>`,
     to: ticket.email,
     subject: 'Votre ticket de réservation',
     html: `
-      <p>Cher(e) ${ticket.name}, Rovel-TicketExpress vous remercie pour votre souscription</p>
+      <p>Cher(e) ${ticket.name}, merci pour votre réservation via Rovel-TicketExpress.</p>
       <p>Voici les détails de votre réservation :</p>
       <ul>
         <li><strong>Agence :</strong> ${ticket.agency}</li>
@@ -110,9 +101,9 @@ async function sendTicketEmail(ticket: Ticket, barcodeBase64: string, pdfBuffer:
         <li><strong>Classe :</strong> ${ticket.class}</li>
         <li><strong>Montant :</strong> ${ticket.totalAmount} FCFA</li>
       </ul>
-      <p>Veuillez trouver votre code-barres ci-dessous :</p>
+      <p>Code-barres ci-dessous :</p>
       <img src="cid:barcode-ticket" />
-      <p>Et votre ticket en pièce jointe (PDF).</p>
+      <p>Votre ticket est joint en PDF.</p>
     `,
     attachments: [
       {
@@ -152,35 +143,24 @@ export async function POST(req: Request) {
     const data = parsed.data;
 
     const inserted = await sql<Ticket[]>`
-    INSERT INTO tickets (agency, mode, name, email, date, departure_time, total_amount, class, from_location, to_location, user_id)
-    VALUES (${data.agency}, ${data.mode}, ${data.name}, ${data.email}, ${data.date},
-      ${data.departureTime}, ${data.totalAmount}, ${data.class}, ${data.from}, ${data.to}, ${userId})
-    RETURNING id, agency, mode, name, email, date,
-              departure_time AS "departureTime",
-              total_amount AS "totalAmount",
-              class,
-              from_location AS "from",
-              to_location AS "to",
-              user_id AS "userId";
+      INSERT INTO tickets (agency, mode, name, email, date, departure_time, total_amount, class, from_location, to_location, user_id)
+      VALUES (${data.agency}, ${data.mode}, ${data.name}, ${data.email}, ${data.date},
+        ${data.departureTime}, ${data.totalAmount}, ${data.class}, ${data.from}, ${data.to}, ${userId})
+      RETURNING id, agency, mode, name, email, date,
+                departure_time AS "departureTime",
+                total_amount AS "totalAmount",
+                class,
+                from_location AS "from",
+                to_location AS "to",
+                user_id AS "userId";
     `;
 
     const dbTicket = inserted[0];
 
     const ticket: Ticket = {
-      id: dbTicket.id,
-      agency: dbTicket.agency,
-      mode: dbTicket.mode,
-      name: dbTicket.name,
-      email: dbTicket.email,
-      date: dbTicket.date,
-      departureTime: dbTicket.departureTime,
-      totalAmount: dbTicket.totalAmount,
-      class: dbTicket.class,
-      from: dbTicket.from,
-      to: dbTicket.to,
-      userId: dbTicket.userId,
+      ...dbTicket,
       barcodeUrl: `/images/barcode-${dbTicket.id}.png`,
-      thumbnailUrl: `/images/bus-thumbnail.jpeg`
+      thumbnailUrl: `/images/bus-thumbnail.jpeg`,
     };
 
     const barcode = await generateBarcodeBase64(ticket.name + Date.now());
@@ -195,11 +175,21 @@ export async function POST(req: Request) {
   }
 }
 
-/**
- * Récupère TOUS les tickets de la base de données.
- * Utilisé par les administrateurs.
- * @returns Un tableau de TicketDBRaw ou un objet d'erreur/undefined.
- */
+export async function GET() {
+  try {
+    const result = await getTicketsByUser();
+
+    if (result && 'error' in result && 'status' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+
+    return NextResponse.json({ tickets: result ?? [] }, { status: 200 });
+  } catch (err) {
+    console.error(`Erreur inattendue dans la route GET /api/tickets:`, err);
+    return NextResponse.json({ error: 'Erreur serveur interne inattendue.' }, { status: 500 });
+  }
+}
+
 export async function getTickets(): Promise<TicketDBRaw[] | { error: string; status: number } | undefined> {
   try {
     const TicketData = await sql<TicketDBRaw[]>`SELECT * FROM tickets`;
@@ -210,49 +200,23 @@ export async function getTickets(): Promise<TicketDBRaw[] | { error: string; sta
   }
 }
 
-/**
- * Récupère les tickets pour l'utilisateur actuellement authentifié.
- * @returns Un tableau de TicketDBRaw, un objet d'erreur, ou undefined.
- */
 export async function getTicketsByUser(): Promise<TicketDBRaw[] | { error: string; status: number } | undefined> {
   try {
     const session = await auth();
     if (!session?.user?.email) {
       return { error: 'Authentification requise.', status: 401 };
     }
-    const emailUser = session.user?.email;
+
+    const emailUser = session.user.email;
     const idUser = await getUserIdByEmail(emailUser);
     if (!idUser) {
       return { error: 'Utilisateur non trouvé.', status: 404 };
     }
+
     const TicketData = await sql<TicketDBRaw[]>`SELECT * FROM tickets WHERE user_id = ${idUser}`;
     return TicketData.length > 0 ? TicketData : undefined;
   } catch (err) {
-    console.error(`Erreur lors de la recuperation des tickets de l'utilisateur:`, err);
+    console.error(`Erreur lors de la récupération des tickets utilisateur:`, err);
     return { error: 'Erreur serveur lors de la récupération des tickets.', status: 500 };
-  }
-}
-
-/**
- * Gère les requêtes GET vers /api/tickets.
- * Retourne les tickets de l'utilisateur authentifié.
- */
-export async function GET(_request: Request) {
-  try {
-    const result = await getTicketsByUser(); // Appelle la fonction interne
-
-    if (result && typeof result === 'object' && 'error' in result && 'status' in result) {
-      return NextResponse.json({ error: result.error }, { status: result.status });
-    }
-
-    if (result === undefined) {
-      return NextResponse.json({ tickets: [] }, { status: 200 });
-    }
-
-    return NextResponse.json({ tickets: result });
-
-  } catch (err) {
-    console.error(`Erreur inattendue dans la route GET /api/tickets:`, err);
-    return NextResponse.json({ error: 'Erreur serveur interne inattendue.' }, { status: 500 });
   }
 }

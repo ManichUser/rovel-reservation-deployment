@@ -4,7 +4,7 @@ import { getUserById, updateUser } from '@/app/lib/action';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const idParam = searchParams.get('id');
-
+    
   if (!idParam) {
     return NextResponse.json({ message: 'ID requis' }, { status: 400 });
   }
@@ -39,3 +39,5 @@ export async function PUT(req: NextRequest) {
 
   return NextResponse.json({ message: result.message }, { status: 200 });
 }
+
+  

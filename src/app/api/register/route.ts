@@ -1,5 +1,5 @@
 
-import { NextResponse,NextRequest } from 'next/server';
+import { NextResponse} from 'next/server';
 import { z } from 'zod';
 import { hashPassword } from '../../lib/server/hash';
 import postgres from 'postgres'; 

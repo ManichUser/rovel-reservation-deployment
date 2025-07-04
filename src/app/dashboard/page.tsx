@@ -5,8 +5,7 @@ import { TicketForm } from '../components/TicketForm'; // Composant client
 import { mapTicketDbToTicket } from '../lib/mapTicketDbToTicket';
 import { Ticket,TicketDBRaw } from '../data/ tickets';
 import { Suspense } from 'react'; // Pour la gestion du chargement des searchParams
-import { getTicketByIdAndUser } from './tickets/[id]/page'; // Importez la fonction de récupération d'un seul ticket
-import postgres from 'postgres'; // Pour getUserIdByEmailInternal
+
 
 // Composant pour afficher un message de chargement pour les searchParams
 function LoadingSearchParams() {
@@ -14,19 +13,13 @@ function LoadingSearchParams() {
 }
 
 // Fonction utilitaire pour obtenir l'ID de l'utilisateur (copie interne pour éviter les dépendances circulaires)
-async function getUserIdByEmailInternal(email: string): Promise<string | undefined> {
-  const sqlInternal = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
-  const user = await sqlInternal`SELECT id FROM users WHERE email = ${email}`;
-  return user.length > 0 ? user[0].id.toString() : undefined;
-}
+// async function getUserIdByEmailInternal(email: string): Promise<string | undefined> {
+//   const sqlInternal = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+//   const user = await sqlInternal`SELECT id FROM users WHERE email = ${email}`;
+//   return user.length > 0 ? user[0].id.toString() : undefined;
+// }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams?: {
-    editId?: string; // L'ID du ticket à éditer, si présent dans l'URL
-  };
-}) {
+export default async function DashboardPage() {
   // const editTicketId = searchParams?.editId;
 
   // 1. Vérification de la session et des droits d'administrateur (côté serveur)
@@ -37,7 +30,7 @@ export default async function DashboardPage({
   let tickets: Ticket[] = [];
   let ticketsError: string | null = null;
   // let ticketToEdit: Ticket | undefined = undefined;
-  let editTicketError: string | null = null;
+  // let editTicketError: string | null = null;
 
   if (isAdmin) {
     // --- Logique pour les Administrateurs ---
@@ -116,9 +109,9 @@ export default async function DashboardPage({
 
       {/* Section du formulaire de création/modification */}
       <section className="mb-12">
-        {editTicketError && (
+        {/* {editTicketError && (
           <div className="w-full justify-center flex text-red-600 font-bold mb-4">{editTicketError}</div>
-        )}
+        )} */}
         <Suspense fallback={<LoadingSearchParams />}>
           <section className="mb-12">
             <TicketForm />
