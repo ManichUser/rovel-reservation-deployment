@@ -1,10 +1,10 @@
 
-import { NextResponse } from 'next/server';
+import { NextResponse,NextRequest } from 'next/server';
 import { z } from 'zod';
-
-import { hashPassword } from '../../../app/lib/server/hash';
+import { getUserById, updateUser } from '@/app/lib/action';
+import { hashPassword } from '../../lib/server/hash';
 import postgres from 'postgres'; 
-import type { User } from '../../../app/lib/definitions'; 
+import type { User } from '../../lib/definitions'; 
 
 export const runtime = 'nodejs';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
@@ -59,3 +59,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Erreur interne du serveur lors de l\'enregistrement.' }, { status: 500 });
   }
 }
+

@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
 
   return (
-    <html lang="en">
+    <html lang="fr" className="translated-ltr">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -1,10 +1,14 @@
-// src/app/add-user/page.tsx
-'use client'; // Indique que c'est un composant côté client
+'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Pour la redirection après succès
+import React, { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 export default function AddUserPage() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('editId');
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,7 +17,30 @@ export default function AddUserPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const router = useRouter();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!editId) return;
+
+      try {
+        const res = await fetch(`/api/user?id=${editId}`);
+        const user = await res.json();
+
+        if (!res.ok) throw new Error(user.message || 'Erreur lors de la récupération');
+
+        setFormData({
+          name: user.name || '',
+          email: user.email || '',
+          password: '',
+        });
+      } catch (err) {
+        console.error('Erreur récupération utilisateur :', err);
+        setError('Impossible de charger les données de l’utilisateur.');
+      }
+    };
+
+    fetchUser();
+  }, [editId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,29 +57,30 @@ export default function AddUserPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/register', { // Appel à notre API route
-        method: 'POST',
+      const response = await fetch(editId ? `/api/user` : `/api/register`, {
+        method: editId ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          id: editId,
+          ...formData,
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setMessage(data.message || 'Utilisateur ajouté avec succès !');
-        setFormData({ name: '', email: '', password: '' }); // Réinitialiser le formulaire
-        // Optionnel: rediriger l'utilisateur après un court délai
+        setMessage(data.message || (editId ? 'Utilisateur modifié !' : 'Utilisateur ajouté !'));
         setTimeout(() => {
-          router.push('/dashboard'); // Rediriger vers le tableau de bord ou la page de connexion
-        }, 2000);
+          router.push('/agents');
+        }, 1500);
       } else {
-        setError(data.message || 'Erreur lors de l\'ajout de l\'utilisateur. ' + JSON.stringify(data.errors));
+        setError(data.message || 'Une erreur est survenue.');
       }
     } catch (err) {
-      console.error('Erreur réseau ou inattendue:', err);
-      setError('Une erreur est survenue. Veuillez réessayer.');
+      console.error(err);
+      setError('Erreur inattendue');
     } finally {
       setLoading(false);
     }
@@ -61,16 +89,20 @@ export default function AddUserPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 className="text-3xl font-bold text-blue-800 text-center mb-6">Ajouter un Nouvel Utilisateur</h1>
+        <h1 className="text-3xl font-bold text-blue-800 text-center mb-6">
+          {editId ? 'Modifier Utilisateur' : 'Ajouter un Nouvel Utilisateur'}
+        </h1>
+
+        <Link href="/agents" className="text-lg text-right text-red-800 font-bold">← Retour</Link>
 
         {message && (
-          <div className="bg-green-100 border border-bleue-400 text-blue-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span className="block sm:inline">{message}</span>
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+            {message}
           </div>
         )}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span className="block sm:inline">{error}</span>
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+            {error}
           </div>
         )}
 
@@ -83,8 +115,8 @@ export default function AddUserPage() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
               required
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             />
           </div>
           <div>
@@ -95,28 +127,30 @@ export default function AddUserPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500"
               required
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe:</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              {editId ? 'Nouveau mot de passe:' : 'Mot de passe:'}
+            </label>
             <input
               type="password"
               id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-              required
+              required={!editId}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-700 text-white p-3 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
             disabled={loading}
+            className="w-full bg-blue-700 text-white p-3 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {loading ? 'Ajout en cours...' : 'Ajouter Utilisateur'}
+            {loading ? (editId ? 'Modification...' : 'Ajout...') : (editId ? 'Modifier' : 'Ajouter')}
           </button>
         </form>
       </div>

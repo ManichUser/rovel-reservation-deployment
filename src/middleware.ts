@@ -24,5 +24,5 @@ export async function middleware(req: NextRequest) {
 
 // Spécifie quelles routes le middleware doit intercepter
 export const config = {
-    matcher: ["/dashboard/:path*", "/api/protected/:path*","/agents/:path*","/reservations/:path*"],
+    matcher: ["/dashboard/:path*", "/api/protected/:path*","/agents/:path*"],
 };

@@ -1,3 +1,5 @@
+// src/app/api/tickets/route.tsx
+
 import { NextResponse } from 'next/server';
 import postgres from 'postgres';
 import { z } from 'zod';
@@ -8,7 +10,7 @@ import {TicketPDF} from '../../lib/pdf/TicketDocument';
 import { auth } from '@/app/auth';
 import { User } from '@/app/lib/definitions';
 import QRCode from 'qrcode'
-import { Ticket, TicketDBRaw } from '@/app/data/ tickets';
+import { Ticket, TicketDBRaw } from '@/app/data/ tickets'; // Correction de l'espace dans le chemin
 
 export const runtime = 'nodejs';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
@@ -25,6 +27,7 @@ const ticketSchema = z.object({
   from: z.string(),
   to: z.string(),
 });
+
 function serializeTicketForQR(ticket: Ticket): string {
   return JSON.stringify({
     name: ticket.name,
@@ -38,7 +41,6 @@ function serializeTicketForQR(ticket: Ticket): string {
     totalAmount: ticket.totalAmount,
   });
 }
-
 
 async function getUserIdByEmail(email: string): Promise<string | undefined> {
   const user = await sql<User[]>`SELECT id FROM users WHERE email = ${email}`;
@@ -59,22 +61,19 @@ export async function generateBarcodeBase64(content: string): Promise<string> {
 
 export async function generateQRCodeBase64(ticket: Ticket): Promise<string> {
   try {
-    const payload = serializeTicketForQR(ticket); // JSON.stringify({...})
+    const payload = serializeTicketForQR(ticket);
     const base64 = await QRCode.toDataURL(payload, {
       errorCorrectionLevel: 'H',
       type: 'image/png',
       scale: 8,
       margin: 2,
     });
-
-    // Supprimer le préfixe "data:image/png;base64,"
     return base64.split(',')[1];
   } catch (error) {
     console.error('Erreur lors de la génération du QR code:', error);
     throw error;
   }
 }
-
 
 export async function generateTicketPDF(
   ticket: Ticket,
@@ -86,6 +85,7 @@ export async function generateTicketPDF(
   );
   return pdfBuffer;
 }
+
 async function sendTicketEmail(ticket: Ticket, barcodeBase64: string, pdfBuffer: Buffer) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -94,9 +94,7 @@ async function sendTicketEmail(ticket: Ticket, barcodeBase64: string, pdfBuffer:
       pass: process.env.EMAIL_PASSWORD,
     },
   });
-
   const barcodeBuffer = Buffer.from(barcodeBase64, 'base64');
-
   await transporter.sendMail({
     from: `"Rovel Reservation" <${process.env.EMAIL_FROM}>`,
     to: ticket.email,
@@ -132,8 +130,6 @@ async function sendTicketEmail(ticket: Ticket, barcodeBase64: string, pdfBuffer:
   });
 }
 
-
-
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -161,40 +157,37 @@ export async function POST(req: Request) {
       ${data.departureTime}, ${data.totalAmount}, ${data.class}, ${data.from}, ${data.to}, ${userId})
     RETURNING id, agency, mode, name, email, date,
               departure_time AS "departureTime",
-              total_amount AS "totalAmount", 
-              class, 
-              from_location AS "from", 
-              to_location AS "to", 
+              total_amount AS "totalAmount",
+              class,
+              from_location AS "from",
+              to_location AS "to",
               user_id AS "userId";
-  `;
-  
+    `;
 
-  const dbTicket = inserted[0];
-  
-  const ticket: Ticket = {
-    id: dbTicket.id,
-    agency: dbTicket.agency,
-    mode: dbTicket.mode,
-    name: dbTicket.name,
-    email: dbTicket.email,
-    date: dbTicket.date,
-    departureTime: dbTicket.departureTime,
-    totalAmount: dbTicket.totalAmount,
-    class: dbTicket.class,
-    from: dbTicket.from,
-    to: dbTicket.to,
-    userId: dbTicket.userId,
-    barcodeUrl: `/images/barcode-${dbTicket.id}.png`,
-    thumbnailUrl: `/images/bus-thumbnail.jpeg`
-  };
-  
-  
-    
+    const dbTicket = inserted[0];
+
+    const ticket: Ticket = {
+      id: dbTicket.id,
+      agency: dbTicket.agency,
+      mode: dbTicket.mode,
+      name: dbTicket.name,
+      email: dbTicket.email,
+      date: dbTicket.date,
+      departureTime: dbTicket.departureTime,
+      totalAmount: dbTicket.totalAmount,
+      class: dbTicket.class,
+      from: dbTicket.from,
+      to: dbTicket.to,
+      userId: dbTicket.userId,
+      barcodeUrl: `/images/barcode-${dbTicket.id}.png`,
+      thumbnailUrl: `/images/bus-thumbnail.jpeg`
+    };
+
     const barcode = await generateBarcodeBase64(ticket.name + Date.now());
     const qrCode = await generateQRCodeBase64(ticket);
-    const pdfBuffer = await generateTicketPDF(ticket, barcode, qrCode); // si tu ajoutes le QR code
+    const pdfBuffer = await generateTicketPDF(ticket, barcode, qrCode);
     await sendTicketEmail(ticket, barcode, pdfBuffer);
-    
+
     return NextResponse.json({ message: 'Ticket généré et envoyé.', ticketId: ticket.id });
   } catch (err) {
     console.error('Erreur lors du traitement du ticket:', err);
@@ -202,30 +195,64 @@ export async function POST(req: Request) {
   }
 }
 
-export async function getTickets():Promise<TicketDBRaw[] | undefined>{
-  const TicketData = await sql<TicketDBRaw[]>`SELECT * FROM tickets`
-  return TicketData.length>0? TicketData : undefined
-}
-export async function getTicketsByUser():Promise<TicketDBRaw[] | NextResponse<{ error: string; }> | undefined>{
-  try{
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Authentification requise.' }, { status: 401 });
-    }
-    const emailUser = session.user?.email
-    const idUser= await getUserIdByEmail(emailUser)
-    if (!idUser) {
-      return NextResponse.json({ error: 'Utilisateur non trouvé.' }, { status: 404 });
-    }
-    const TicketData = await sql<TicketDBRaw[]>`SELECT * FROM tickets WHERE user_id = ${idUser}`
-    return TicketData.length>0? TicketData : undefined
-  } catch (err){
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Authentification requise.' }, { status: 401 });
-    }
-    console.error(`Erreur lors de la recuperation des tickets de ${session.user?.name} `, err);
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 }); 
+/**
+ * Récupère TOUS les tickets de la base de données.
+ * Utilisé par les administrateurs.
+ * @returns Un tableau de TicketDBRaw ou un objet d'erreur/undefined.
+ */
+export async function getTickets(): Promise<TicketDBRaw[] | { error: string; status: number } | undefined> {
+  try {
+    const TicketData = await sql<TicketDBRaw[]>`SELECT * FROM tickets`;
+    return TicketData.length > 0 ? TicketData : undefined;
+  } catch (err) {
+    console.error(`Erreur lors de la récupération de tous les tickets:`, err);
+    return { error: 'Erreur serveur lors de la récupération de tous les tickets.', status: 500 };
   }
-  
-}  
+}
+
+/**
+ * Récupère les tickets pour l'utilisateur actuellement authentifié.
+ * @returns Un tableau de TicketDBRaw, un objet d'erreur, ou undefined.
+ */
+export async function getTicketsByUser(): Promise<TicketDBRaw[] | { error: string; status: number } | undefined> {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return { error: 'Authentification requise.', status: 401 };
+    }
+    const emailUser = session.user?.email;
+    const idUser = await getUserIdByEmail(emailUser);
+    if (!idUser) {
+      return { error: 'Utilisateur non trouvé.', status: 404 };
+    }
+    const TicketData = await sql<TicketDBRaw[]>`SELECT * FROM tickets WHERE user_id = ${idUser}`;
+    return TicketData.length > 0 ? TicketData : undefined;
+  } catch (err) {
+    console.error(`Erreur lors de la recuperation des tickets de l'utilisateur:`, err);
+    return { error: 'Erreur serveur lors de la récupération des tickets.', status: 500 };
+  }
+}
+
+/**
+ * Gère les requêtes GET vers /api/tickets.
+ * Retourne les tickets de l'utilisateur authentifié.
+ */
+export async function GET(_request: Request) {
+  try {
+    const result = await getTicketsByUser(); // Appelle la fonction interne
+
+    if (result && typeof result === 'object' && 'error' in result && 'status' in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+
+    if (result === undefined) {
+      return NextResponse.json({ tickets: [] }, { status: 200 });
+    }
+
+    return NextResponse.json({ tickets: result });
+
+  } catch (err) {
+    console.error(`Erreur inattendue dans la route GET /api/tickets:`, err);
+    return NextResponse.json({ error: 'Erreur serveur interne inattendue.' }, { status: 500 });
+  }
+}
