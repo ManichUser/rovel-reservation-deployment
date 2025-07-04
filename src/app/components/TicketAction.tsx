@@ -2,7 +2,6 @@
 'use client'; // Ce composant est un Composant Client
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { deleteTicket } from '@/app/lib/actionsTicket'; // Importez votre Server Action de suppression
 

@@ -25,6 +25,7 @@ interface ReservationStat {
  */
 export async function GET(request: Request) {
   try {
+    console.log(request)
     // 1. Vérifier l'authentification et les droits d'administrateur
     const session = await auth();
     // Assurez-vous que 'Ronel Mbami' est bien le nom d'utilisateur de l'administrateur

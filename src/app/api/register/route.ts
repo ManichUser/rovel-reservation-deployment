@@ -1,7 +1,6 @@
 
 import { NextResponse,NextRequest } from 'next/server';
 import { z } from 'zod';
-import { getUserById, updateUser } from '@/app/lib/action';
 import { hashPassword } from '../../lib/server/hash';
 import postgres from 'postgres'; 
 import type { User } from '../../lib/definitions'; 

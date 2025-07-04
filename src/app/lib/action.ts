@@ -37,8 +37,9 @@ export async function authenticate(_prevState: unknown, formData: FormData) {
   return undefined;
 }
 
-export async function GET(_req: Request) {
+export async function GET(req: Request) {
   try {
+    console.log(req)
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Authentification requise.' }, { status: 401 });
