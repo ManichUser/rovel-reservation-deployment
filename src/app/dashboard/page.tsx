@@ -36,7 +36,7 @@ export default async function DashboardPage({
 
   let tickets: Ticket[] = [];
   let ticketsError: string | null = null;
-  let ticketToEdit: Ticket | undefined = undefined;
+  // let ticketToEdit: Ticket | undefined = undefined;
   let editTicketError: string | null = null;
 
   if (isAdmin) {
